@@ -1,31 +1,69 @@
-import { createContext, useContext, useState, type ReactNode } from 'preact/compat';
+import {
+    createContext,
+    useContext,
+    useState,
+    useEffect,
+    type ReactNode,
+} from 'preact/compat';
+import { User } from 'oidc-client-ts';
+import oidcClient from '../services/oidcClient';
+
+interface OIDCProfile {
+    sub: string;
+    roles?: string[];
+    capabilities?: string[];
+    [key: string]: unknown;
+}
 
 interface AuthContextType {
+    user: User | null;
     token: string | null;
     isAuthenticated: boolean;
-    login: (token: string) => void;
+    login: () => void;
     logout: () => void;
+    hasCapability: (cap: string) => boolean;
+    hasRole: (role: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-    const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'));
+    const [user, setUser] = useState<User | null>(null);
+    const token = user?.access_token || null;
+    const isAuthenticated = !!user;
 
-    const login = (newToken: string) => {
-        localStorage.setItem('token', newToken);
-        setToken(newToken);
+    const login = () => {
+        oidcClient.signinRedirect();
     };
 
     const logout = () => {
-        localStorage.removeItem('token');
-        setToken(null);
+        oidcClient.signoutRedirect();
     };
 
-    const isAuthenticated = !!token;
+    const hasCapability = (cap: string) =>
+        ((user?.profile as OIDCProfile)?.capabilities ?? []).includes(cap);
+
+    const hasRole = (role: string) =>
+        ((user?.profile as OIDCProfile)?.roles ?? []).includes(role);
+
+    useEffect(() => {
+        oidcClient.getUser().then((loadedUser) => {
+            setUser(loadedUser);
+        });
+
+        oidcClient.events.addUserLoaded(setUser);
+        oidcClient.events.addUserUnloaded(() => setUser(null));
+
+        return () => {
+            oidcClient.events.removeUserLoaded(setUser);
+            oidcClient.events.removeUserUnloaded(() => setUser(null));
+        };
+    }, []);
 
     return (
-        <AuthContext.Provider value={{ token, isAuthenticated, login, logout }}>
+        <AuthContext.Provider
+            value={{ user, token, isAuthenticated, login, logout, hasCapability, hasRole }}
+        >
             {children}
         </AuthContext.Provider>
     );
@@ -33,6 +71,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 export const useAuth = () => {
     const context = useContext(AuthContext);
-    if (!context) throw new Error("useAuth must be used within an AuthProvider");
+    if (!context)
+        throw new Error('useAuth must be used within an AuthProvider');
     return context;
 };

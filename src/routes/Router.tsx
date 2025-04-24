@@ -3,6 +3,7 @@ import { ComponentChildren } from 'preact';
 import { useAuth } from '../context/AuthContext';
 import LoginPage from '../pages/LoginPage';
 import DashboardPage from '../pages/DashboardPage';
+import CallbackPage from '../pages/CallbackPage';
 
 const ProtectedRoute = ({ children }: { children: ComponentChildren }) => {
     const { isAuthenticated } = useAuth();
@@ -14,6 +15,7 @@ export default function AppRouter() {
         <BrowserRouter>
             <Routes>
                 <Route path="/login" element={<LoginPage />} />
+                <Route path="/callback" element={<CallbackPage />} />
                 <Route
                     path="/"
                     element={
