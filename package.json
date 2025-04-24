@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "bootstrap": "^5.3.5",
     "preact": "^10.26.4"
   },
   "devDependencies": {
