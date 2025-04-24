@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "bootstrap": "^5.3.5",
-    "preact": "^10.26.4"
+    "preact": "^10.26.4",
+    "react-router-dom": "^7.5.2"
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.10.1",
