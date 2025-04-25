@@ -41,6 +41,10 @@ export class BaseHttpService {
             throw new Error(`HTTP ${res.status}: ${errText}`);
         }
 
+        if (res.status === 204 || res.headers.get('content-length') === '0') {
+            return undefined as T;
+        }
+
         return res.json();
     }
 }

@@ -12,7 +12,19 @@ class UserService extends BaseHttpService {
     }
 
     getUserByEmail(email: string, token: string) {
-        return this.get<UserResponse>(`/users/${email}`, token);
+        return this.get<UserResponse>(`/users/${encodeURIComponent(email)}`, token);
+    }
+
+    createUser(data: CreateUserRequest, token: string) {
+        return this.post<UserResponse>('/users', token, data);
+    }
+
+    updateUser(email: string, data: UpdateUserRequest, token: string) {
+        return this.put<UserResponse>(`/users/${encodeURIComponent(email)}`, token, data);
+    }
+
+    deleteUser(email: string, token: string) {
+        return this.delete<void>(`/users/${encodeURIComponent(email)}`, token);
     }
 }
 
@@ -22,4 +34,16 @@ export interface UserResponse {
     email: string;
     enabled: boolean;
     roles: string[];
+}
+
+export interface CreateUserRequest {
+    email: string;
+    password: string;
+    roles?: string[];
+}
+
+export interface UpdateUserRequest {
+    password?: string;
+    enabled?: boolean;
+    roles?: string[];
 }
