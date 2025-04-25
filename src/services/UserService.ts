@@ -1,36 +1,22 @@
+import { BaseHttpService } from './BaseHttpService';
+
 const BASE_URL = 'http://localhost:8082';
 
-export const UserService = {
-    async getAllUsers(token: string): Promise<UserResponse[]> {
-        const res = await fetch(`${BASE_URL}/users`, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json',
-            },
-        });
+class UserService extends BaseHttpService {
+    constructor() {
+        super(BASE_URL);
+    }
 
-        if (!res.ok) {
-            throw new Error(`Error fetching users: ${res.status}`);
-        }
+    getAllUsers(token: string) {
+        return this.get<UserResponse[]>('/users', token);
+    }
 
-        return res.json();
-    },
+    getUserByEmail(email: string, token: string) {
+        return this.get<UserResponse>(`/users/${email}`, token);
+    }
+}
 
-    async getUserByEmail(email: string, token: string): Promise<UserResponse> {
-        const res = await fetch(`${BASE_URL}/users/${email}`, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json',
-            },
-        });
-
-        if (!res.ok) {
-            throw new Error(`Error fetching user: ${res.status}`);
-        }
-
-        return res.json();
-    },
-};
+export const userService = new UserService();
 
 export interface UserResponse {
     email: string;
