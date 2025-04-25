@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'preact/hooks';
 import { CreateUserRequest, UpdateUserRequest } from '../services/UserService';
+import { RoleResponse, roleService } from '../services/RoleService';
+import { useAuth } from '../context/AuthContext';
 
 interface UserModalProps {
     show: boolean;
@@ -10,22 +12,31 @@ interface UserModalProps {
 }
 
 export default function UserModal({ show, onClose, onSave, initialData, mode }: UserModalProps) {
+    const { token } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [roles, setRoles] = useState('');
+    const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
     const [enabled, setEnabled] = useState(true);
+    const [rolesAvailable, setRolesAvailable] = useState<RoleResponse[]>([]);
 
     useEffect(() => {
         if (initialData) {
             setEmail((initialData as any).email || '');
-            setRoles((initialData as any).roles?.join(',') || '');
+            setSelectedRoles((initialData as any).roles || []);
             setEnabled((initialData as any).enabled ?? true);
         }
     }, [initialData]);
 
+    useEffect(() => {
+        if (!token) return;
+        roleService.getAllRoles(token)
+            .then(setRolesAvailable)
+            .catch(err => console.error('Error loading roles:', err.message));
+    }, [token]);
+
     const handleSubmit = (e: Event) => {
         e.preventDefault();
-        const data: any = { roles: roles.split(',').map(r => r.trim()) };
+        const data: any = { roles: selectedRoles };
 
         if (mode === 'create') {
             data.email = email;
@@ -37,6 +48,14 @@ export default function UserModal({ show, onClose, onSave, initialData, mode }: 
         }
 
         onSave(data);
+    };
+
+    const toggleRole = (roleName: string) => {
+        setSelectedRoles(prev =>
+            prev.includes(roleName)
+                ? prev.filter(r => r !== roleName)
+                : [...prev, roleName]
+        );
     };
 
     if (!show) return null;
@@ -106,15 +125,30 @@ export default function UserModal({ show, onClose, onSave, initialData, mode }: 
                                     </div>
                                 </>
                             )}
+
                             <div className="mb-3">
-                                <label className="form-label">Roles (separados por coma)</label>
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    value={roles}
-                                    onInput={(e) => setRoles((e.target as HTMLInputElement).value)}
-                                />
+                                <label className="form-label">Roles</label>
+                                {rolesAvailable.length > 0 ? (
+                                    <div className="d-flex flex-wrap gap-2">
+                                        {rolesAvailable.map(role => {
+                                            const isSelected = selectedRoles.includes(role.name);
+                                            return (
+                                                <span
+                                                    key={role.name}
+                                                    className={`badge rounded-pill ${isSelected ? 'bg-primary' : 'bg-secondary'} text-white p-2`}
+                                                    style={{ cursor: 'pointer' }}
+                                                    onClick={() => toggleRole(role.name)}
+                                                >
+                          {role.name}
+                        </span>
+                                            );
+                                        })}
+                                    </div>
+                                ) : (
+                                    <p className="text-muted">Cargando roles...</p>
+                                )}
                             </div>
+
                         </div>
                         <div className="modal-footer">
                             <button type="button" className="btn btn-secondary" onClick={onClose}>

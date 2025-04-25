@@ -7,7 +7,7 @@ import {
     UpdateUserRequest
 } from '../services/UserService';
 import LoadingSpinner from '../components/LoadingSpinner';
-import PermissionGuard from '../components/PermissionGuard';
+import Guard from '../components/Guard';
 import UserModal from '../components/UserModal';
 
 export default function UsersPage() {
@@ -112,13 +112,15 @@ export default function UsersPage() {
     if (error) return <div className="container mt-5 text-danger">Error: {error}</div>;
 
     return (
-        <PermissionGuard capability="VIEW_USERS">
+        <Guard capability="VIEW_USERS" showErrorMessage>
             <div className="container mt-5">
                 <div className="d-flex justify-content-between align-items-center mb-4">
                     <h2>Usuarios del sistema</h2>
-                    <button className="btn btn-primary" onClick={handleCreate}>
-                        Nuevo Usuario
-                    </button>
+                    <Guard capability="CREATE_USER">
+                        <button className="btn btn-primary" onClick={handleCreate}>
+                            Nuevo Usuario
+                        </button>
+                    </Guard>
                 </div>
 
                 <div className="d-flex gap-2 mb-3">
@@ -165,12 +167,16 @@ export default function UsersPage() {
                             <td>{user.enabled ? 'Activo' : 'Inactivo'}</td>
                             <td>{user.roles.join(', ')}</td>
                             <td className="d-flex gap-2">
-                                <button className="btn btn-sm btn-warning" onClick={() => handleEdit(user)}>
-                                    Editar
-                                </button>
-                                <button className="btn btn-sm btn-danger" onClick={() => handleDelete(user.email)}>
-                                    Eliminar
-                                </button>
+                                <Guard capability="UPDATE_USER">
+                                    <button className="btn btn-sm btn-warning" onClick={() => handleEdit(user)}>
+                                        Editar
+                                    </button>
+                                </Guard>
+                                <Guard capability="DELETE_USER">
+                                    <button className="btn btn-sm btn-danger" onClick={() => handleDelete(user.email)}>
+                                        Eliminar
+                                    </button>
+                                </Guard>
                             </td>
                         </tr>
                     ))}
@@ -185,6 +191,6 @@ export default function UsersPage() {
                     mode={mode}
                 />
             </div>
-        </PermissionGuard>
+        </Guard>
     );
 }
