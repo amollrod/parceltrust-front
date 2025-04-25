@@ -1,6 +1,11 @@
 import { useAuth } from '../context/AuthContext';
-import { useEffect, useState } from 'preact/hooks';
-import { userService, UserResponse, CreateUserRequest, UpdateUserRequest } from '../services/UserService';
+import { useEffect, useState, useRef } from 'preact/hooks';
+import {
+    userService,
+    UserResponse,
+    CreateUserRequest,
+    UpdateUserRequest
+} from '../services/UserService';
 import LoadingSpinner from '../components/LoadingSpinner';
 import PermissionGuard from '../components/PermissionGuard';
 import UserModal from '../components/UserModal';
@@ -9,16 +14,21 @@ export default function UsersPage() {
     const { token } = useAuth();
     const [users, setUsers] = useState<UserResponse[]>([]);
     const [loading, setLoading] = useState(true);
+    const [searching, setSearching] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [showModal, setShowModal] = useState(false);
     const [editUser, setEditUser] = useState<UserResponse | null>(null);
     const [mode, setMode] = useState<'create' | 'edit'>('create');
+    const [searchEmail, setSearchEmail] = useState('');
+    const [notFound, setNotFound] = useState(false);
+    const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const fetchUsers = () => {
         if (!token) return;
-
         setLoading(true);
-        userService.getAllUsers(token)
+        setNotFound(false);
+        userService
+            .getAllUsers(token)
             .then(setUsers)
             .catch(err => setError(err.message))
             .finally(() => setLoading(false));
@@ -27,6 +37,35 @@ export default function UsersPage() {
     useEffect(() => {
         fetchUsers();
     }, [token]);
+
+    const searchUser = (email: string) => {
+        if (!token) return;
+        if (!email.trim()) {
+            fetchUsers();
+            return;
+        }
+
+        setSearching(true);
+        setNotFound(false);
+
+        userService
+            .getUserByEmail(email.trim(), token)
+            .then(user => setUsers([user]))
+            .catch(() => {
+                setUsers([]);
+                setNotFound(true);
+            })
+            .finally(() => setSearching(false));
+    };
+
+    const handleSearchInput = (value: string) => {
+        setSearchEmail(value);
+        if (debounceRef.current) clearTimeout(debounceRef.current);
+
+        debounceRef.current = setTimeout(() => {
+            searchUser(value);
+        }, 400);
+    };
 
     const handleCreate = () => {
         setMode('create');
@@ -44,7 +83,8 @@ export default function UsersPage() {
         if (!confirm(`¿Seguro que quieres eliminar al usuario ${email}?`)) return;
         if (!token) return;
 
-        userService.deleteUser(email, token)
+        userService
+            .deleteUser(email, token)
             .then(() => {
                 fetchUsers();
             })
@@ -54,21 +94,18 @@ export default function UsersPage() {
     const handleSave = (data: CreateUserRequest | UpdateUserRequest) => {
         if (!token) return;
 
-        if (mode === 'create') {
-            userService.createUser(data as CreateUserRequest, token)
-                .then(() => {
-                    setShowModal(false);
-                    fetchUsers();
-                })
-                .catch(err => alert('Error creando usuario: ' + err.message));
-        } else if (mode === 'edit' && editUser) {
-            userService.updateUser(editUser.email, data as UpdateUserRequest, token)
-                .then(() => {
-                    setShowModal(false);
-                    fetchUsers();
-                })
-                .catch(err => alert('Error actualizando usuario: ' + err.message));
-        }
+        const action = mode === 'create'
+            ? userService.createUser(data as CreateUserRequest, token)
+            : userService.updateUser(editUser!.email, data as UpdateUserRequest, token);
+
+        action
+            .then(() => {
+                setShowModal(false);
+                fetchUsers();
+            })
+            .catch(err =>
+                alert(`Error ${mode === 'create' ? 'creando' : 'actualizando'} usuario: ` + err.message)
+            );
     };
 
     if (loading) return <LoadingSpinner />;
@@ -84,6 +121,27 @@ export default function UsersPage() {
                     </button>
                 </div>
 
+                <div className="d-flex gap-2 mb-3">
+                    <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Buscar por email"
+                        value={searchEmail}
+                        onInput={(e) => handleSearchInput((e.target as HTMLInputElement).value)}
+                    />
+                    <button
+                        className="btn btn-outline-secondary"
+                        onClick={() => {
+                            setSearchEmail('');
+                            fetchUsers();
+                        }}
+                    >
+                        Reset
+                    </button>
+                </div>
+
+                {searching && <p className="text-muted">Buscando usuario...</p>}
+
                 <table className="table table-bordered table-hover">
                     <thead className="table-light">
                     <tr>
@@ -94,14 +152,25 @@ export default function UsersPage() {
                     </tr>
                     </thead>
                     <tbody>
+                    {notFound && (
+                        <tr>
+                            <td colSpan={4} className="text-center text-muted">
+                                Usuario no encontrado.
+                            </td>
+                        </tr>
+                    )}
                     {users.map(user => (
                         <tr key={user.email}>
                             <td>{user.email}</td>
                             <td>{user.enabled ? 'Activo' : 'Inactivo'}</td>
                             <td>{user.roles.join(', ')}</td>
                             <td className="d-flex gap-2">
-                                <button className="btn btn-sm btn-warning" onClick={() => handleEdit(user)}>Editar</button>
-                                <button className="btn btn-sm btn-danger" onClick={() => handleDelete(user.email)}>Eliminar</button>
+                                <button className="btn btn-sm btn-warning" onClick={() => handleEdit(user)}>
+                                    Editar
+                                </button>
+                                <button className="btn btn-sm btn-danger" onClick={() => handleDelete(user.email)}>
+                                    Eliminar
+                                </button>
                             </td>
                         </tr>
                     ))}
