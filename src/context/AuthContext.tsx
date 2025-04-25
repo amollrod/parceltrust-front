@@ -50,7 +50,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     useEffect(() => {
         oidcClient.getUser().then((loadedUser) => {
-            setUser(loadedUser);
+            if (loadedUser) {
+                const nowInSeconds = Math.floor(Date.now() / 1000);
+                const tokenExpires = loadedUser.expires_at || 0;
+
+                if (tokenExpires < nowInSeconds) {
+                    console.warn('Access token expired, logging out.');
+                    oidcClient.removeUser();
+                    setUser(null);
+                } else {
+                    setUser(loadedUser);
+                }
+            }
             setIsLoading(false);
         });
 
