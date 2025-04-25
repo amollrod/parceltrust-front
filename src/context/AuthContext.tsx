@@ -19,6 +19,7 @@ interface AuthContextType {
     user: User | null;
     token: string | null;
     isAuthenticated: boolean;
+    isLoading: boolean;
     login: () => void;
     logout: () => void;
     hasCapability: (cap: string) => boolean;
@@ -29,6 +30,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
     const token = user?.access_token || null;
     const isAuthenticated = !!user;
 
@@ -49,10 +51,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     useEffect(() => {
         oidcClient.getUser().then((loadedUser) => {
             setUser(loadedUser);
+            setIsLoading(false);
         });
 
-        oidcClient.events.addUserLoaded(setUser);
-        oidcClient.events.addUserUnloaded(() => setUser(null));
+        oidcClient.events.addUserLoaded((u) => {
+            setUser(u);
+            setIsLoading(false);
+        });
+
+        oidcClient.events.addUserUnloaded(() => {
+            setUser(null);
+            setIsLoading(false);
+        });
 
         return () => {
             oidcClient.events.removeUserLoaded(setUser);
@@ -62,7 +72,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     return (
         <AuthContext.Provider
-            value={{ user, token, isAuthenticated, login, logout, hasCapability, hasRole }}
+            value={{
+                user,
+                token,
+                isAuthenticated,
+                isLoading,
+                login,
+                logout,
+                hasCapability,
+                hasRole,
+            }}
         >
             {children}
         </AuthContext.Provider>
