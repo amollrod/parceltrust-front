@@ -8,6 +8,7 @@ import CallbackPage from '../pages/CallbackPage';
 import SilentRenewPage from "../pages/SilentRenewPage.tsx";
 import DashboardPage from '../pages/DashboardPage';
 import UsersPage from '../pages/UsersPage';
+import RolesPage from '../pages/RolesPage';
 
 const ProtectedRoute = ({ children }: { children: ComponentChildren }) => {
     const { isAuthenticated, isLoading } = useAuth();
@@ -40,6 +41,14 @@ export default function AppRouter() {
                     element={
                         <ProtectedRoute>
                             <UsersPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/roles"
+                    element={
+                        <ProtectedRoute>
+                            <RolesPage />
                         </ProtectedRoute>
                     }
                 />
