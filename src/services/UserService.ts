@@ -1,6 +1,7 @@
 import { BaseHttpService } from './BaseHttpService';
 
 const BASE_URL = 'http://localhost:8082';
+const USERS_RESOURCE = '/users';
 
 class UserService extends BaseHttpService {
     constructor() {
@@ -8,23 +9,23 @@ class UserService extends BaseHttpService {
     }
 
     getAllUsers(token: string) {
-        return this.get<UserResponse[]>('/users', token);
+        return this.get<UserResponse[]>(USERS_RESOURCE, token);
     }
 
     getUserByEmail(email: string, token: string) {
-        return this.get<UserResponse>(`/users/${encodeURIComponent(email)}`, token);
+        return this.get<UserResponse>(USERS_RESOURCE + encodeURIComponent(email), token);
     }
 
     createUser(data: CreateUserRequest, token: string) {
-        return this.post<UserResponse>('/users', token, data);
+        return this.post<UserResponse>(USERS_RESOURCE, token, data);
     }
 
     updateUser(email: string, data: UpdateUserRequest, token: string) {
-        return this.put<UserResponse>(`/users/${encodeURIComponent(email)}`, token, data);
+        return this.put<UserResponse>(USERS_RESOURCE + encodeURIComponent(email), token, data);
     }
 
     deleteUser(email: string, token: string) {
-        return this.delete<void>(`/users/${encodeURIComponent(email)}`, token);
+        return this.delete<void>(USERS_RESOURCE + encodeURIComponent(email), token);
     }
 }
 

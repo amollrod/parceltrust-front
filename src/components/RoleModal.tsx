@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'preact/hooks';
-import { RoleResponse } from '../services/RoleService';
+import { RoleResponse, roleService, CapabilityResponse } from '../services/RoleService';
+import { useAuth } from '../context/AuthContext';
 
 interface RoleModalProps {
     show: boolean;
@@ -9,15 +10,11 @@ interface RoleModalProps {
     mode: 'create' | 'edit';
 }
 
-const ALL_CAPABILITIES = [
-    'CREATE_USER', 'UPDATE_USER', 'DELETE_USER', 'VIEW_USERS',
-    'CREATE_ROLE', 'UPDATE_ROLE', 'DELETE_ROLE', 'VIEW_ROLES',
-    'CREATE_PACKAGE', 'FIND_PACKAGE', 'VIEW_HISTORY', 'SEARCH_PACKAGES', 'UPDATE_STATUS'
-];
-
 export default function RoleModal({ show, onClose, onSave, initialData, mode }: RoleModalProps) {
+    const { token } = useAuth();
     const [name, setName] = useState('');
     const [capabilities, setCapabilities] = useState<string[]>([]);
+    const [availableCapabilities, setAvailableCapabilities] = useState<CapabilityResponse[]>([]);
 
     useEffect(() => {
         if (initialData) {
@@ -28,6 +25,13 @@ export default function RoleModal({ show, onClose, onSave, initialData, mode }: 
             setCapabilities([]);
         }
     }, [initialData, show]);
+
+    useEffect(() => {
+        if (!token || !show) return;
+        roleService.getAllCapabilities(token)
+            .then(res => setAvailableCapabilities(res))
+            .catch(err => console.error('Error loading capabilities:', err.message));
+    }, [token, show]);
 
     const toggleCapability = (cap: string) => {
         setCapabilities(prev =>
@@ -68,19 +72,23 @@ export default function RoleModal({ show, onClose, onSave, initialData, mode }: 
                             <div className="mb-3">
                                 <label className="form-label">Capacidades</label>
                                 <div className="d-flex flex-wrap gap-2">
-                                    {ALL_CAPABILITIES.map(cap => {
+                                    {availableCapabilities.map(({ name: cap, description }) => {
                                         const selected = capabilities.includes(cap);
                                         return (
                                             <span
                                                 key={cap}
                                                 className={`badge rounded-pill ${selected ? 'bg-primary' : 'bg-secondary'} text-white p-2`}
                                                 style={{ cursor: 'pointer' }}
+                                                title={description}
                                                 onClick={() => toggleCapability(cap)}
                                             >
                                                 {cap}
                                             </span>
                                         );
                                     })}
+                                    {availableCapabilities.length === 0 && (
+                                        <p className="text-muted">Cargando capacidades...</p>
+                                    )}
                                 </div>
                             </div>
                         </div>
