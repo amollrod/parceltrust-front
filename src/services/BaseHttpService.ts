@@ -37,8 +37,11 @@ export class BaseHttpService {
         });
 
         if (!res.ok) {
-            const errText = await res.text();
-            throw new Error(`HTTP ${res.status}: ${errText}`);
+            const contentType = res.headers.get('content-type');
+            const errorPayload = contentType?.includes('application/json')
+                ? await res.json()
+                : await res.text();
+            throw new Error(`HTTP ${res.status}: ${JSON.stringify(errorPayload)}`);
         }
 
         if (res.status === 204 || res.headers.get('content-length') === '0') {
