@@ -13,7 +13,7 @@ class UserService extends BaseHttpService {
     }
 
     getUserByEmail(email: string, token: string) {
-        return this.get<UserResponse>(USERS_RESOURCE + encodeURIComponent(email), token);
+        return this.get<UserResponse>(`${USERS_RESOURCE}/${encodeURIComponent(email)}`, token);
     }
 
     createUser(data: CreateUserRequest, token: string) {
@@ -21,11 +21,11 @@ class UserService extends BaseHttpService {
     }
 
     updateUser(email: string, data: UpdateUserRequest, token: string) {
-        return this.put<UserResponse>(USERS_RESOURCE + encodeURIComponent(email), token, data);
+        return this.put<UserResponse>(`${USERS_RESOURCE}/${encodeURIComponent(email)}`, token, data);
     }
 
     deleteUser(email: string, token: string) {
-        return this.delete<void>(USERS_RESOURCE + encodeURIComponent(email), token);
+        return this.delete<void>(`${USERS_RESOURCE}/${encodeURIComponent(email)}`, token);
     }
 }
 
