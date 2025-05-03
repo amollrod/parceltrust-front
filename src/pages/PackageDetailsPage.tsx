@@ -35,6 +35,8 @@ export default function PackageDetailsPage() {
     if (error) return <div className="text-danger container mt-5">Error: {error}</div>;
     if (!details) return <div className="container mt-5">No se encontró el paquete.</div>;
 
+    const currentTimestamp = history.length > 0 ? history[0].timestamp : null;
+
     return (
         <div className="container mt-5">
             <h2 className="mb-4">Detalles del Paquete</h2>
@@ -50,9 +52,12 @@ export default function PackageDetailsPage() {
             <h4>Historial del Paquete</h4>
             <ul className="timeline">
                 {history.map((event, i) => (
-                    <li key={i} className="timeline-item">
+                    <li
+                        key={i}
+                        className={`timeline-item ${event.timestamp === currentTimestamp ? 'active' : ''}`}
+                    >
                         <span className="timestamp">{new Date(event.timestamp).toLocaleString()}</span>
-                        <div><strong>{event.status}</strong> en {event.location}</div>
+                        <div><strong>{event.status}</strong> en <i>{event.location}</i></div>
                     </li>
                 ))}
             </ul>
