@@ -3,6 +3,8 @@ import { useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { packageService, PackageResponse, PackageHistoryResponse } from '../services/PackageService';
 import LoadingSpinner from '../components/LoadingSpinner';
+import Guard from '../components/Guard';
+import UpdateStatusForm from '../components/UpdateStatusForm';
 import './PackageDetailsPage.css';
 
 export default function PackageDetailsPage() {
@@ -14,7 +16,7 @@ export default function PackageDetailsPage() {
     const [detailsError, setDetailsError] = useState<string | null>(null);
     const [historyError, setHistoryError] = useState<string | null>(null);
 
-    useEffect(() => {
+    const fetchData = () => {
         if (!token || !id) return;
 
         setLoading(true);
@@ -40,6 +42,10 @@ export default function PackageDetailsPage() {
                 setHistoryError('Error al cargar el historial del paquete.');
             })
             .finally(() => setLoading(false));
+    };
+
+    useEffect(() => {
+        fetchData();
     }, [id, token]);
 
     function formatUnixTimestamp(timestampSeconds: number | null | undefined): string {
@@ -71,6 +77,23 @@ export default function PackageDetailsPage() {
                 </>
             ) : (
                 <p className="text-muted">No se pudo cargar la información del paquete.</p>
+            )}
+
+            <h2 className="mt-5">Actualizar Estado</h2>
+
+            {details ? (
+                <Guard capability="UPDATE_STATUS">
+                    <p>Introduce los datos para el nuevo estado.</p>
+                    <UpdateStatusForm
+                        id={details.id}
+                        token={token!}
+                        currentStatus={details.status}
+                        currentLocation={details.lastLocation}
+                        onSuccess={fetchData}
+                    />
+                </Guard>
+            ) : (
+                <p className="text-muted">No es posible actualizar el estado en estos momentos.</p>
             )}
 
             <h2 className="mt-5">Historial del Paquete</h2>
