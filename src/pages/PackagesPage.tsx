@@ -74,7 +74,7 @@ export default function PackagesPage() {
         setPage(0);
     };
 
-    const handleViewDetails = (id: string) => {
+    const handleViewHistory = (id: string) => {
         navigate(`/packages/${id}`);
     };
 
@@ -166,9 +166,9 @@ export default function PackagesPage() {
                                     <Guard capability="VIEW_HISTORY">
                                         <button
                                             className="btn btn-sm btn-primary"
-                                            onClick={() => handleViewDetails(pkg.id)}
+                                            onClick={() => handleViewHistory(pkg.id)}
                                         >
-                                            Ver Detalles
+                                            Ver Historial
                                         </button>
                                     </Guard>
                                 </td>
