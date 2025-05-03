@@ -11,42 +11,60 @@ export default function Navbar() {
     });
 
     return (
-        <nav className="navbar navbar-expand-lg navbar-light bg-light px-4">
-            <Link className="navbar-brand" to="/">
+        <nav className="navbar navbar-expand-lg navbar-dark bg-dark px-4">
+            <Link className="navbar-brand fw-bold text-info" to="/">
                 ParcelTrust
             </Link>
 
-            <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-                {filteredRoutes.map(route => (
-                    <li key={route.path} className="nav-item">
-                        <Link className="nav-link" to={route.path}>
-                            {route.name}
-                        </Link>
-                    </li>
-                ))}
-            </ul>
+            <button
+                className="navbar-toggler"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navbarContent"
+                aria-controls="navbarContent"
+                aria-expanded="false"
+                aria-label="Toggle navigation"
+            >
+                <span className="navbar-toggler-icon"></span>
+            </button>
 
-            <div className="d-flex align-items-center">
-                {isAuthenticated ? (
-                    <div className="dropdown">
-                        <button
-                            className="btn btn-outline-secondary dropdown-toggle"
-                            type="button"
-                            id="userDropdown"
-                            data-bs-toggle="dropdown"
-                            aria-expanded="false"
-                        >
-                            {user?.profile?.sub}
+            <div className="collapse navbar-collapse" id="navbarContent">
+                <ul className="navbar-nav me-auto mb-2 mb-lg-0">
+                    {filteredRoutes.map(route => (
+                        <li key={route.path} className="nav-item">
+                            <Link className="nav-link" to={route.path}>
+                                {route.name}
+                            </Link>
+                        </li>
+                    ))}
+                </ul>
+
+                <div className="d-flex align-items-center">
+                    {isAuthenticated ? (
+                        <div className="dropdown">
+                            <button
+                                className="btn btn-dark dropdown-toggle"
+                                type="button"
+                                id="userDropdown"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false"
+                            >
+                                <i className="bi bi-person-circle me-1"></i> {user?.profile?.sub}
+                            </button>
+                            <ul className="dropdown-menu dropdown-menu-end dropdown-menu-dark" aria-labelledby="userDropdown">
+                                <li>
+                                    <button className="dropdown-item" onClick={logout}>
+                                        Cerrar sesión
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    ) : (
+                        <button className="btn btn-dark" onClick={login}>
+                            Iniciar sesión
                         </button>
-                        <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                            <li><button className="dropdown-item" onClick={logout}>Cerrar sesión</button></li>
-                        </ul>
-                    </div>
-                ) : (
-                    <button className="btn btn-outline-primary" onClick={login}>
-                        Iniciar sesión
-                    </button>
-                )}
+                    )}
+                </div>
             </div>
         </nav>
     );
