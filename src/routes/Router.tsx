@@ -7,6 +7,8 @@ import LoginPage from '../pages/LoginPage';
 import CallbackPage from '../pages/CallbackPage';
 import SilentRenewPage from "../pages/SilentRenewPage.tsx";
 import DashboardPage from '../pages/DashboardPage';
+import PackagesPage from '../pages/PackagesPage';
+import PackageDetailsPage from '../pages/PackageDetailsPage';
 import UsersPage from '../pages/UsersPage';
 import RolesPage from '../pages/RolesPage';
 
@@ -28,6 +30,22 @@ export default function AppRouter() {
                 <Route path="/login" element={ <LoginPage /> } />
                 <Route path="/callback" element={ <CallbackPage /> } />
                 <Route path="/silent-renew" element={<SilentRenewPage />} />
+                <Route
+                    path="/packages"
+                    element={
+                        <ProtectedRoute>
+                            <PackagesPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/packages/:id"
+                    element={
+                        <ProtectedRoute>
+                            <PackageDetailsPage />
+                        </ProtectedRoute>
+                    }
+                />
                 <Route
                     path="/"
                     element={

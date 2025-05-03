@@ -21,8 +21,12 @@ export class BaseHttpService {
         return this.request<T>('DELETE', path, token);
     }
 
+    protected patch<T>(path: string, token: string, body?: any): Promise<T> {
+        return this.request<T>('PATCH', path, token, body);
+    }
+
     private async request<T>(
-        method: 'GET' | 'POST' | 'PUT' | 'DELETE',
+        method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH',
         path: string,
         token: string,
         body?: any
