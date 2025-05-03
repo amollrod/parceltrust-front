@@ -1,9 +1,15 @@
 import { useAuth } from '../context/AuthContext';
 import { useEffect, useState } from 'preact/hooks';
-import { packageService, PACKAGE_STATUSES, PackageResponse, PackageStatus } from '../services/PackageService';
+import {
+    packageService,
+    PACKAGE_STATUSES,
+    PackageResponse,
+    PackageStatus
+} from '../services/PackageService';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Guard from '../components/Guard';
 import { useNavigate } from 'react-router-dom';
+import PackageModal from '../components/PackageModal';
 
 export default function PackagesPage() {
     const { token } = useAuth();
@@ -12,6 +18,7 @@ export default function PackagesPage() {
     const [packages, setPackages] = useState<PackageResponse[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [showModal, setShowModal] = useState(false);
 
     const [page, setPage] = useState(0);
     const [size, setSize] = useState(10);
@@ -84,7 +91,15 @@ export default function PackagesPage() {
     return (
         <Guard capability="SEARCH_PACKAGES" showErrorMessage>
             <div className="container mt-5">
-                <h2 className="mb-4">Buscar Paquetes</h2>
+                <div className="d-flex justify-content-between align-items-center mb-4">
+                    <h2>Paquetes del sistema</h2>
+                    <Guard capability="CREATE_PACKAGE">
+                        <button className="btn btn-success" onClick={() => setShowModal(true)}>
+                            Crear Paquete
+                        </button>
+                    </Guard>
+                </div>
+
                 <form className="row row-cols-lg-auto g-2 align-items-end mb-4" onSubmit={handleSearch}>
                     <div className="col">
                         <label className="form-label">Estado</label>
@@ -195,6 +210,8 @@ export default function PackagesPage() {
                         Siguiente
                     </button>
                 </div>
+
+                <PackageModal show={showModal} onClose={() => setShowModal(false)} onSuccess={fetchPackages} />
             </div>
         </Guard>
     );
