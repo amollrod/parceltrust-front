@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'preact/hooks';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { packageService, PackageResponse, PackageHistoryResponse } from '../services/PackageService';
+import { packageService, PackageResponse, PackageHistoryResponse, PackageStatus } from '../services/PackageService';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Guard from '../components/Guard';
 import UpdateStatusForm from '../components/UpdateStatusForm';
@@ -15,24 +15,24 @@ export default function PackageDetailsPage() {
     const [loading, setLoading] = useState(true);
     const [detailsError, setDetailsError] = useState<string | null>(null);
     const [historyError, setHistoryError] = useState<string | null>(null);
+    const [polling, setPolling] = useState(false);
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-    const fetchData = () => {
+    const fetchDetails = () => {
         if (!token || !id) return;
-
-        setLoading(true);
         setDetailsError(null);
-        setHistoryError(null);
-
-        // Fetch details
-        packageService.findPackage(id, token)
+        return packageService.findPackage(id, token)
             .then(setDetails)
             .catch(err => {
                 console.error(err);
                 setDetailsError('Error al cargar los detalles del paquete.');
             });
+    };
 
-        // Fetch history (newest first)
-        packageService.getPackageHistory(id, token)
+    const fetchHistory = () => {
+        if (!token || !id) return;
+        setHistoryError(null);
+        return packageService.getPackageHistory(id, token)
             .then(data => {
                 const sorted = [...data].sort((a, b) => b.timestamp - a.timestamp);
                 setHistory(sorted);
@@ -40,28 +40,71 @@ export default function PackageDetailsPage() {
             .catch(err => {
                 console.error(err);
                 setHistoryError('Error al cargar el historial del paquete.');
-            })
-            .finally(() => setLoading(false));
+            });
     };
 
     useEffect(() => {
-        fetchData();
+        setLoading(true);
+        Promise.all([fetchDetails(), fetchHistory()]).finally(() => setLoading(false));
     }, [id, token]);
 
-    function formatUnixTimestamp(timestampSeconds: number | null | undefined): string {
-        if (!timestampSeconds || timestampSeconds <= 0) return 'Fecha desconocida';
-        return new Date(timestampSeconds * 1000).toLocaleString();
-    }
+    const formatUnixTimestamp = (timestampSeconds: number | null | undefined): string =>
+        !timestampSeconds || timestampSeconds <= 0
+            ? 'Fecha desconocida'
+            : new Date(timestampSeconds * 1000).toLocaleString();
 
     const currentTimestamp = history.length > 0 ? history[0].timestamp : null;
+
+    const handleSuccessUpdate = (newStatus: PackageStatus, newLocation: string) => {
+        setPolling(true);
+        setSuccessMessage('Transacción enviada. Esperando confirmación del nuevo estado...');
+        setDetails(prev =>
+            prev
+                ? {
+                    ...prev,
+                    status: newStatus,
+                    lastLocation: newLocation,
+                }
+                : prev
+        );
+
+        let attempts = 0;
+        const interval = setInterval(() => {
+            if (!token || !id) return;
+            attempts++;
+            packageService.getPackageHistory(id, token)
+                .then(data => {
+                    const sorted = [...data].sort((a, b) => b.timestamp - a.timestamp);
+                    setHistory(sorted);
+                    const updated = sorted[0];
+                    if (updated.status === newStatus && updated.location === newLocation) {
+                        clearInterval(interval);
+                        setSuccessMessage('¡Estado actualizado correctamente!');
+                        fetchDetails();
+                        setPolling(false);
+                        setTimeout(() => setSuccessMessage(null), 3000);
+                    } else if (attempts >= 20) {
+                        clearInterval(interval);
+                        setSuccessMessage('Estado actualizado, pero la confirmación puede tardar unos minutos.');
+                        setPolling(false);
+                    }
+                })
+                .catch(err => {
+                    clearInterval(interval);
+                    console.error(err);
+                    setSuccessMessage('Error durante la verificación del estado actualizado.');
+                    setPolling(false);
+                });
+        }, 3000);
+    };
 
     if (loading) return <LoadingSpinner />;
 
     return (
         <div className="container mt-5">
-
             {detailsError && <div className="alert alert-warning">{detailsError}</div>}
             {historyError && <div className="alert alert-warning">{historyError}</div>}
+            {successMessage && <div className="alert alert-info">{successMessage}</div>}
 
             <h2>Detalles del Paquete</h2>
 
@@ -74,26 +117,22 @@ export default function PackageDetailsPage() {
                     <p><strong>Estado actual:</strong> {details.status}</p>
                     <p><strong>Última ubicación:</strong> {details.lastLocation}</p>
                     <p><strong>Última actualización:</strong> {formatUnixTimestamp(details.lastTimestamp)}</p>
+
+                    <Guard capability="UPDATE_STATUS">
+                        <h2 className="mt-5">Actualizar Estado</h2>
+                        <p>Introduce los datos para el nuevo estado.</p>
+                        <UpdateStatusForm
+                            id={details.id}
+                            token={token!}
+                            currentStatus={details.status}
+                            currentLocation={details.lastLocation}
+                            onSuccess={handleSuccessUpdate}
+                            disabled={polling}
+                        />
+                    </Guard>
                 </>
             ) : (
                 <p className="text-muted">No se pudo cargar la información del paquete.</p>
-            )}
-
-            <h2 className="mt-5">Actualizar Estado</h2>
-
-            {details ? (
-                <Guard capability="UPDATE_STATUS">
-                    <p>Introduce los datos para el nuevo estado.</p>
-                    <UpdateStatusForm
-                        id={details.id}
-                        token={token!}
-                        currentStatus={details.status}
-                        currentLocation={details.lastLocation}
-                        onSuccess={fetchData}
-                    />
-                </Guard>
-            ) : (
-                <p className="text-muted">No es posible actualizar el estado en estos momentos.</p>
             )}
 
             <h2 className="mt-5">Historial del Paquete</h2>
