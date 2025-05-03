@@ -1,6 +1,6 @@
 import { useAuth } from '../context/AuthContext';
 import { useEffect, useState } from 'preact/hooks';
-import { packageService, PackageResponse } from '../services/PackageService';
+import { packageService, PACKAGE_STATUSES, PackageResponse, PackageStatus } from '../services/PackageService';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Guard from '../components/Guard';
 import { useNavigate } from 'react-router-dom';
@@ -12,8 +12,17 @@ export default function PackagesPage() {
     const [packages, setPackages] = useState<PackageResponse[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
     const [page, setPage] = useState(0);
+    const [size, setSize] = useState(10);
     const [totalPages, setTotalPages] = useState(0);
+
+    const [status, setStatus] = useState<PackageStatus | ''>('');
+    const [origin, setOrigin] = useState('');
+    const [destination, setDestination] = useState('');
+    const [location, setLocation] = useState('');
+    const [fromDate, setFromDate] = useState('');
+    const [toDate, setToDate] = useState('');
 
     const fetchPackages = () => {
         if (!token) return;
@@ -21,7 +30,19 @@ export default function PackagesPage() {
         setError(null);
 
         packageService
-            .searchPackages({ page, size: 10 }, token)
+            .searchPackages(
+                {
+                    page,
+                    size,
+                    status: status || undefined,
+                    origin: origin || undefined,
+                    destination: destination || undefined,
+                    location: location || undefined,
+                    fromDate: fromDate ? new Date(fromDate) : undefined,
+                    toDate: toDate ? new Date(toDate) : undefined,
+                },
+                token
+            )
             .then(res => {
                 setPackages(res.content ?? []);
                 setTotalPages(res.totalPages ?? 1);
@@ -35,14 +56,22 @@ export default function PackagesPage() {
 
     useEffect(() => {
         if (token) fetchPackages();
-    }, [token, page]);
+    }, [token, page, size]);
 
-    const handleNext = () => {
-        if (page + 1 < totalPages) setPage(p => p + 1);
+    const handleSearch = (e: Event) => {
+        e.preventDefault();
+        setPage(0);
+        fetchPackages();
     };
 
-    const handlePrevious = () => {
-        if (page > 0) setPage(p => p - 1);
+    const resetFilters = () => {
+        setStatus('');
+        setOrigin('');
+        setDestination('');
+        setLocation('');
+        setFromDate('');
+        setToDate('');
+        setPage(0);
     };
 
     const handleViewDetails = (id: string) => {
@@ -55,7 +84,57 @@ export default function PackagesPage() {
     return (
         <Guard capability="SEARCH_PACKAGES" showErrorMessage>
             <div className="container mt-5">
-                <h2 className="mb-4">Paquetes del sistema</h2>
+                <h2 className="mb-4">Buscar Paquetes</h2>
+                <form className="row row-cols-lg-auto g-2 align-items-end mb-4" onSubmit={handleSearch}>
+                    <div className="col">
+                        <label className="form-label">Estado</label>
+                        <select className="form-select" value={status}
+                                onChange={e => setStatus(e.currentTarget.value as PackageStatus | '')}>
+                            <option value="">Todos</option>
+                            {PACKAGE_STATUSES.map(s => (
+                                <option key={s} value={s}>{s}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="col">
+                        <label className="form-label">Origen</label>
+                        <input className="form-control" value={origin}
+                               onChange={e => setOrigin(e.currentTarget.value)}/>
+                    </div>
+                    <div className="col">
+                        <label className="form-label">Destino</label>
+                        <input className="form-control" value={destination}
+                               onChange={e => setDestination(e.currentTarget.value)}/>
+                    </div>
+                    <div className="col">
+                        <label className="form-label">Ubicación</label>
+                        <input className="form-control" value={location}
+                               onChange={e => setLocation(e.currentTarget.value)}/>
+                    </div>
+                    <div className="col">
+                        <label className="form-label">Desde</label>
+                        <input type="datetime-local" className="form-control" value={fromDate}
+                               onChange={e => setFromDate(e.currentTarget.value)}/>
+                    </div>
+                    <div className="col">
+                        <label className="form-label">Hasta</label>
+                        <input type="datetime-local" className="form-control" value={toDate}
+                               onChange={e => setToDate(e.currentTarget.value)}/>
+                    </div>
+                    <div className="col">
+                        <label className="form-label">Items por página</label>
+                        <select className="form-select" value={size}
+                                onChange={e => setSize(Number(e.currentTarget.value))}>
+                            {[10, 25, 50].map(opt => (
+                                <option key={opt} value={opt}>{opt}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="col d-flex gap-2">
+                        <button className="btn btn-primary" type="submit">Buscar</button>
+                        <button type="button" className="btn btn-secondary" onClick={resetFilters}>Limpiar</button>
+                    </div>
+                </form>
 
                 <table className="table table-bordered table-hover">
                     <thead className="table-light">
@@ -102,7 +181,7 @@ export default function PackagesPage() {
                 <div className="d-flex justify-content-between mt-3">
                     <button
                         className="btn btn-outline-primary"
-                        onClick={handlePrevious}
+                        onClick={() => setPage(p => p - 1)}
                         disabled={page === 0 || totalPages === 0}
                     >
                         Anterior
@@ -110,7 +189,7 @@ export default function PackagesPage() {
                     <span>Página {page + 1} de {totalPages}</span>
                     <button
                         className="btn btn-outline-primary"
-                        onClick={handleNext}
+                        onClick={() => setPage(p => p + 1)}
                         disabled={page + 1 >= totalPages || totalPages === 0}
                     >
                         Siguiente

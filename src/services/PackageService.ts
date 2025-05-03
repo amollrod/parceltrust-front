@@ -26,10 +26,7 @@ class PackageService extends BaseHttpService {
         newLocation: string,
         token: string
     ): Promise<PackageResponse> {
-        const query = new URLSearchParams({
-            status,
-            newLocation
-        }).toString();
+        const query = new URLSearchParams({ status, newLocation }).toString();
         return this.patch<PackageResponse>(`${PACKAGES_RESOURCE}/${id}/status?${query}`, token);
     }
 
@@ -58,14 +55,17 @@ export interface CreatePackageRequest {
     destination: string;
 }
 
-export type PackageStatus =
-    | 'CREATED'
-    | 'IN_TRANSIT'
-    | 'IN_STORE'
-    | 'DELIVERED'
-    | 'RETURNED'
-    | 'CANCELED'
-    | 'LOST';
+export const PACKAGE_STATUSES = [
+    'CREATED',
+    'IN_TRANSIT',
+    'IN_STORE',
+    'DELIVERED',
+    'RETURNED',
+    'CANCELED',
+    'LOST',
+] as const;
+
+export type PackageStatus = typeof PACKAGE_STATUSES[number];
 
 export interface PackageHistoryResponse {
     status: PackageStatus;
@@ -80,7 +80,6 @@ export interface PackageResponse {
     status: PackageStatus;
     lastLocation: string;
     lastTimestamp: number;
-    history: PackageHistoryResponse[];
 }
 
 export interface PagePackageResponse {
