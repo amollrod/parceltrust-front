@@ -42,6 +42,11 @@ export default function PackageDetailsPage() {
             .finally(() => setLoading(false));
     }, [id, token]);
 
+    function formatUnixTimestamp(timestampSeconds: number | null | undefined): string {
+        if (!timestampSeconds || timestampSeconds <= 0) return 'Fecha desconocida';
+        return new Date(timestampSeconds * 1000).toLocaleString();
+    }
+
     const currentTimestamp = history.length > 0 ? history[0].timestamp : null;
 
     if (loading) return <LoadingSpinner />;
@@ -62,7 +67,7 @@ export default function PackageDetailsPage() {
                     <p><strong>Destino:</strong> {details.destination}</p>
                     <p><strong>Estado actual:</strong> {details.status}</p>
                     <p><strong>Última ubicación:</strong> {details.lastLocation}</p>
-                    <p><strong>Última actualización:</strong> {new Date(details.lastTimestamp).toLocaleString()}</p>
+                    <p><strong>Última actualización:</strong> {formatUnixTimestamp(details.lastTimestamp)}</p>
                 </>
             ) : (
                 <p className="text-muted">No se pudo cargar la información del paquete.</p>
@@ -79,7 +84,7 @@ export default function PackageDetailsPage() {
                                 key={i}
                                 className={`timeline-item ${event.timestamp === currentTimestamp ? 'active' : ''}`}
                             >
-                                <span className="timestamp">{new Date(event.timestamp).toLocaleString()}</span>
+                                <span className="timestamp">{formatUnixTimestamp(event.timestamp)}</span>
                                 <div><strong>{event.status}</strong> en <i>{event.location}</i></div>
                             </li>
                         ))}
