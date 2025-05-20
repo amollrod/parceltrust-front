@@ -1,13 +1,13 @@
 import { UserManager, WebStorageStateStore } from 'oidc-client-ts';
 
 const oidcClient = new UserManager({
-    authority: 'http://localhost:8082',
+    authority: "http://auth.localtest.me:8082",
     client_id: 'parceltrust-client',
-    redirect_uri: 'http://localhost:5173/callback',
-    silent_redirect_uri: 'http://localhost:5173/silent-renew',
+    redirect_uri: "http://parceltrust.localtest.me/callback",
+    silent_redirect_uri: "http://parceltrust.localtest.me/silent-renew",
     response_type: 'code',
     scope: 'openid',
-    post_logout_redirect_uri: 'http://localhost:5173/',
+    post_logout_redirect_uri: "http://parceltrust.localtest.me/",
     automaticSilentRenew: true,
     userStore: new WebStorageStateStore({ store: window.localStorage }),
 });
