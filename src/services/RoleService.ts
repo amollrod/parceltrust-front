@@ -1,6 +1,6 @@
 import { BaseHttpService } from './BaseHttpService';
 
-const BASE_URL = 'http://auth.localtest.me:8082';
+const BASE_URL = 'http://localhost:8082';
 const ROLES_RESOURCE = '/roles';
 const CAPABILITIES_RESOURCE = '/capabilities';
 

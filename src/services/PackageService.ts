@@ -1,6 +1,6 @@
 import { BaseHttpService } from './BaseHttpService';
 
-const BASE_URL = 'http://parceltrust.localtest.me:8080';
+const BASE_URL = 'http://localhost:8080';
 const PACKAGES_RESOURCE = '/packages';
 
 class PackageService extends BaseHttpService {
