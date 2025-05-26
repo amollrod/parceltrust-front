@@ -75,8 +75,9 @@ export default function UserModal({ show, onClose, onSave, initialData, mode }: 
                             {mode === 'create' && (
                                 <>
                                     <div className="mb-3">
-                                        <label className="form-label">Email</label>
+                                        <label htmlFor="email" className="form-label">Email</label>
                                         <input
+                                            id="email"
                                             type="email"
                                             className="form-control"
                                             value={email}
@@ -85,8 +86,9 @@ export default function UserModal({ show, onClose, onSave, initialData, mode }: 
                                         />
                                     </div>
                                     <div className="mb-3">
-                                        <label className="form-label">Password</label>
+                                        <label htmlFor="password" className="form-label">Password</label>
                                         <input
+                                            id="password"
                                             type="password"
                                             name="new-password"
                                             autoComplete="new-password"
@@ -101,8 +103,9 @@ export default function UserModal({ show, onClose, onSave, initialData, mode }: 
                             {mode === 'edit' && (
                                 <>
                                     <div className="mb-3">
-                                        <label className="form-label">Password (nuevo opcional)</label>
+                                        <label htmlFor="password-edit" className="form-label">Password (nuevo opcional)</label>
                                         <input
+                                            id="password-edit"
                                             type="password"
                                             name="new-password"
                                             autoComplete="new-password"
@@ -139,8 +142,8 @@ export default function UserModal({ show, onClose, onSave, initialData, mode }: 
                                                     style={{ cursor: 'pointer' }}
                                                     onClick={() => toggleRole(role.name)}
                                                 >
-                          {role.name}
-                        </span>
+                                                  {role.name}
+                                                </span>
                                             );
                                         })}
                                     </div>

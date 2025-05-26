@@ -34,8 +34,9 @@ export default function UpdateStatusForm({ id, token, currentStatus, currentLoca
     return (
         <form onSubmit={handleSubmit} className="mt-3" style={{ maxWidth: '350px' }}>
             <div className="mb-3">
-                <label className="form-label">Nuevo Estado</label>
+                <label htmlFor="status" className="form-label">Nuevo Estado</label>
                 <select
+                    id="status"
                     className="form-select"
                     value={status}
                     disabled={disabled}
@@ -48,8 +49,9 @@ export default function UpdateStatusForm({ id, token, currentStatus, currentLoca
             </div>
 
             <div className="mb-3">
-                <label className="form-label">Ubicación</label>
+                <label htmlFor="location" className="form-label">Ubicación</label>
                 <input
+                    id="location"
                     className="form-control"
                     value={location}
                     disabled={disabled}

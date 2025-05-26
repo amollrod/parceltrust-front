@@ -58,8 +58,9 @@ export default function RoleModal({ show, onClose, onSave, initialData, mode }: 
                         <div className="modal-body">
                             {mode === 'create' && (
                                 <div className="mb-3">
-                                    <label className="form-label">Nombre del rol</label>
+                                    <label htmlFor="role-name" className="form-label">Nombre del rol</label>
                                     <input
+                                        id="role-name"
                                         type="text"
                                         className="form-control"
                                         value={name}

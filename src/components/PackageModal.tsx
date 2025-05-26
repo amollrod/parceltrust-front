@@ -48,8 +48,9 @@ export default function PackageModal({ show, onClose, onSuccess }: PackageModalP
                         <div className="modal-body">
                             {error && <div className="alert alert-danger">{error}</div>}
                             <div className="mb-3">
-                                <label className="form-label">Origen</label>
+                                <label htmlFor="origin" className="form-label">Origen</label>
                                 <input
+                                    id="origin"
                                     type="text"
                                     className="form-control"
                                     value={origin}
@@ -58,8 +59,9 @@ export default function PackageModal({ show, onClose, onSuccess }: PackageModalP
                                 />
                             </div>
                             <div className="mb-3">
-                                <label className="form-label">Destino</label>
+                                <label htmlFor="destination" className="form-label">Destino</label>
                                 <input
+                                    id="destination"
                                     type="text"
                                     className="form-control"
                                     value={destination}
@@ -70,7 +72,7 @@ export default function PackageModal({ show, onClose, onSuccess }: PackageModalP
                         </div>
                         <div className="modal-footer">
                             <button type="button" className="btn btn-secondary" onClick={onClose} disabled={loading}>
-                                Cancelar
+                            Cancelar
                             </button>
                             <button type="submit" className="btn btn-primary" disabled={loading}>
                                 {loading ? 'Creando...' : 'Crear'}
