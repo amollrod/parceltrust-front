@@ -1,0 +1,25 @@
+name: Frontend CI/CD
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  unit-tests:
+    uses: ./.github/workflows/unit-tests.yml
+
+  build:
+    needs: unit-tests
+    uses: ./.github/workflows/docker-publish.yml
+
+  docker-publish:
+    needs: build
+    if: github.ref == 'refs/heads/master'
+    uses: ./.github/workflows/docker-publish.yml
+    permissions:
+      contents: read
+      packages: write
