@@ -13,7 +13,7 @@ jobs:
     uses: ./.github/workflows/unit-tests.yml
 
   docker-publish:
-    needs: build
+    needs: unit-tests
     if: github.ref == 'refs/heads/master'
     uses: ./.github/workflows/docker-publish.yml
     permissions:
