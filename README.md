@@ -1,6 +1,13 @@
 # ParcelTrust Frontend
 
+
+[![Build](https://github.com/amollrod/parceltrust-front/actions/workflows/pipeline.yml/badge.svg)](https://github.com/amollrod/parceltrust-front/actions/workflows/pipeline.yml)
+[![License: GPLv3](https://img.shields.io/badge/license-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0.html)
+[![TFG Document License: CC BY-NC 3.0 + GNU FDL 1.3](https://img.shields.io/badge/TFG%20License-CC%20BY--NC%203.0%20%2B%20GNU%20FDL%201.3-blue)](https://creativecommons.org/licenses/by-nc/3.0/es/)
+
 Frontend de la aplicación **ParcelTrust**, desarrollado con [Preact](https://preactjs.com/), [Vite](https://vitejs.dev/) y [Bootstrap](https://getbootstrap.com/). Este frontend consume la API del sistema de trazabilidad de paquetes basado en blockchain y ofrece autenticación vía OAuth2.
+
+![arquitecturaFront.jpg](arquitecturaFront.jpg)
 
 ---
 
@@ -114,3 +121,13 @@ docker run -p 5173:80 ghcr.io/amollrod/parceltrust-front:latest
 ```
 
 Accede a la aplicación en: [http://localhost:5173](http://localhost:5173).
+
+---
+
+## Licencias
+
+- Este repositorio está licenciado bajo los términos de la [GNU General Public License v3.0](./LICENSE)
+- La memoria del TFG está protegida bajo: [CC BY-NC 3.0 España](https://creativecommons.org/licenses/by-nc/3.0/es/) y [GNU Free Documentation License 1.3](https://www.gnu.org/licenses/fdl-1.3.html)
+
+
+Proyecto desarrollado como parte del TFG de **Alex Moll Rodríguez** para la **UOC** en 2025.
